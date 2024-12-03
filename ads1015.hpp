@@ -17,6 +17,7 @@
 #define ADS1015_REG_CONFIG_CPOL_ACTVLOW (0x0000)
 #define ADS1015_REG_CONFIG_CMODE_TRAD (0x0000)
 #define ADS1015_REG_CONFIG_MODE_CONTINUOUS (0x0000) // Continuous conversion mode
+#define ADS1015_REG_CONFIG_MODE_SINGLE (0x0100) // Single conversion mode
 #define ADS1015_REG_CONFIG_OS_SINGLE (0x8000)  // Single-conversion
 
 /* Data Rate Config */
@@ -117,14 +118,14 @@ private:
      * Configures the ADC.
      * @param mux The MUX config indicating which channel to read from
      */
-    bool configure_adc(adsMux_t mux, adsGain_t gain = GAIN_ONE);
+    bool configure_adc(adsMux_t mux, adsGain_t gain = GAIN_TWOTHIRDS);
 
     /**
      * Reads from a single AIN channel.
      * @param channel The AIN channel to read from
      * @param gain Optional parameter to set gain
      */
-    uint16_t read_single_ended(uint8_t channel, adsGain_t gain = GAIN_ONE);
+    uint16_t read_single_ended(uint8_t channel, adsGain_t gain = GAIN_TWOTHIRDS);
 
     /**
      * The config value for the ADC.

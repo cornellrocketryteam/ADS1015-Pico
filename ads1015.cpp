@@ -52,16 +52,19 @@ bool ADS1015::configure_adc(adsMux_t mux, adsGain_t gain) {
              ADS1015_REG_CONFIG_CLAT_NONLAT | // Non-latching (default val)
              ADS1015_REG_CONFIG_CPOL_ACTVLOW | // Alert/Rdy active low   (default val)
              ADS1015_REG_CONFIG_CMODE_TRAD | // Traditional comparator (default val)
-             ADS1015_REG_CONFIG_DR_MASK | data_rate | // Data rate
-             ADS1015_REG_CONFIG_MODE_CONTINUOUS |   // Continuous conversion mode
-             ADS1015_REG_CONFIG_OS_SINGLE | // Single-conversion
-             ADS1015_REG_CONFIG_PGA_MASK | gain |
-             ADS1015_REG_CONFIG_MUX_MASK | mux;
+             data_rate | // Data rate
+             ADS1015_REG_CONFIG_MODE_SINGLE |   // Single conversion mode
+             gain | mux |
+             ADS1015_REG_CONFIG_OS_SINGLE;  // Single-conversion
+
+    printf("Config: %x\n", config);
 
     // Write config register to the ADC
     if (!write_register(ADS1015_REG_POINTER_CONFIG, config)) {
         return false;
     }
+
+    sleep_ms(2); // Allow time for ADC to stabilize
 
     // Confirm bits in config register match bits in config value
     uint8_t val[2];
@@ -70,7 +73,7 @@ bool ADS1015::configure_adc(adsMux_t mux, adsGain_t gain) {
     }
 
     uint16_t result = (val[0] << 8) | val[1];
-    if (result != config) {
+    if ((result & ~ADS1015_REG_CONFIG_OS_SINGLE) != (config & ~ADS1015_REG_CONFIG_OS_SINGLE)) {
         return false;
     }
 
@@ -81,7 +84,6 @@ uint16_t ADS1015::read_single_ended(uint8_t channel, adsGain_t gain) {
     if (channel > 3) {
         return 0;
     }
-
     adsMux_t mux;
 
     // Get mux config corresponding to given channel
@@ -106,7 +108,7 @@ uint16_t ADS1015::read_single_ended(uint8_t channel, adsGain_t gain) {
     }
 
     // Wait for the conversion to complete
-    sleep_us(1000 * ADS1015_CONVERSION_DELAY);
+    sleep_us(1000000 * ADS1015_CONVERSION_DELAY);
 
     // Read the conversion results
     uint8_t val[2];

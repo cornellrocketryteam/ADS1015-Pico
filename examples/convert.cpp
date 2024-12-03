@@ -25,12 +25,15 @@ int main() {
     std::vector<uint16_t> data;
     std::vector<uint8_t> channels = {1, 2, 3};
 
-    ads.begin(DR_250SPS);
+    if (!ads.begin(DR_250SPS)) {
+        printf("ADC initialization failed");
+        return 0;
+    }
+
     while (true) {
         data = ads.read_data(channels);
         for (size_t i = 0; i < data.size(); ++i) {
             printf("Channel %zu: %d\n", i + 1, data[i]);
         }
-        sleep_ms(20);
     }
 }
