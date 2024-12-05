@@ -12,13 +12,13 @@
 #define ADS1015_REG_POINTER_CONFIG (0x01)
 #define ADS1015_REG_POINTER_CONVERT (0x00)
 #define ADS1015_CONVERSION_DELAY (1)
-#define ADS1015_REG_CONFIG_CQUE_NONE (0x0003)
-#define ADS1015_REG_CONFIG_CLAT_NONLAT (0x0000)
-#define ADS1015_REG_CONFIG_CPOL_ACTVLOW (0x0000)
-#define ADS1015_REG_CONFIG_CMODE_TRAD (0x0000)
+#define ADS1015_REG_CONFIG_CQUE_NONE (0x0003)  // Disable the comparator (default val)
+#define ADS1015_REG_CONFIG_CLAT_NONLAT (0x0000) // Non-latching (default val)
+#define ADS1015_REG_CONFIG_CPOL_ACTVLOW (0x0000) // Alert/Rdy active low   (default val)
+#define ADS1015_REG_CONFIG_CMODE_TRAD (0x0000) // Traditional comparator (default val)
 #define ADS1015_REG_CONFIG_MODE_CONTINUOUS (0x0000) // Continuous conversion mode
-#define ADS1015_REG_CONFIG_MODE_SINGLE (0x0100) // Single conversion mode
-#define ADS1015_REG_CONFIG_OS_SINGLE (0x8000)  // Single-conversion
+#define ADS1015_REG_CONFIG_MODE_SINGLE (0x0100) // Single-shot conversion mode
+#define ADS1015_REG_CONFIG_OS_SINGLE (0x8000)  // Single-ended conversion
 
 /* Data Rate Config */
 #define ADS1015_REG_CONFIG_DR_MASK (0x00E0)
@@ -55,7 +55,7 @@ typedef enum {
     DR_1600SPS = ADS1015_REG_CONFIG_DR_1600SPS,  // 1600 samples per second (default)
     DR_2400SPS = ADS1015_REG_CONFIG_DR_2400SPS,  // 2400 samples per second
     DR_3300SPS = ADS1015_REG_CONFIG_DR_3300SPS
-} adsDataRate_t;
+} ads_data_rate_t;
 
 /* Gain mappings */
 typedef enum {
@@ -65,7 +65,7 @@ typedef enum {
     GAIN_FOUR = ADS1015_REG_CONFIG_PGA_1_024V,
     GAIN_EIGHT = ADS1015_REG_CONFIG_PGA_0_512V,
     GAIN_SIXTEEN = ADS1015_REG_CONFIG_PGA_0_256V
-} adsGain_t;
+} ads_gain_t;
 
 /* MUX mappings */
 typedef enum {
@@ -74,7 +74,7 @@ typedef enum {
     MUX_SINGLE_1 = ADS1015_REG_CONFIG_MUX_SINGLE_1,
     MUX_SINGLE_2 = ADS1015_REG_CONFIG_MUX_SINGLE_2,
     MUX_SINGLE_3 = ADS1015_REG_CONFIG_MUX_SINGLE_3
-} adsMux_t;
+} ads_mux_t;
 
 /**
  * Representation of the ADS1015 sensor.
@@ -91,13 +91,14 @@ public:
      * Configures the ADC with data rate and default values.
      * @param data_rate The data rate to configure the ADC with
      */
-    bool begin(adsDataRate_t data_rate = DR_250SPS);
+    bool begin(ads_data_rate_t dr = DR_250SPS);
 
     /**
      * Reads data from each channel passed in and returns data as a vector.
      * @param channels A vector of AIN channels to be read from
+     * @param data The array that the converted data will be stored in
      */
-    std::vector<uint16_t> read_data(std::vector<uint8_t> &channels);
+    bool read_data(std::vector<uint8_t> &channels, uint16_t *data);
 
 private:
     /**
@@ -118,16 +119,17 @@ private:
      * Configures the ADC.
      * @param mux The MUX config indicating which channel to read from
      */
-    bool configure_adc(adsMux_t mux, adsGain_t gain = GAIN_TWOTHIRDS);
+    bool configure_adc(ads_mux_t mux, ads_gain_t gain = GAIN_TWOTHIRDS);
 
     /**
      * Reads from a single AIN channel.
      * @param channel The AIN channel to read from
      * @param gain Optional parameter to set gain
      */
-    uint16_t read_single_ended(uint8_t channel, adsGain_t gain = GAIN_TWOTHIRDS);
+    uint16_t read_single_ended(uint8_t channel, ads_gain_t gain = GAIN_TWOTHIRDS);
 
     /**
+     *
      * The config value for the ADC.
      */
     uint16_t config;
@@ -135,12 +137,7 @@ private:
     /**
      * The data rate for the ADC.
      */
-    adsDataRate_t data_rate;
-
-    /**
-     * Return value for I2C reads and writes.
-     */
-    int ret;
+    ads_data_rate_t data_rate;
 
     /**
      * The I2C bus.

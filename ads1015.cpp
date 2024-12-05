@@ -10,8 +10,7 @@ bool ADS1015::write_register(const uint8_t reg, const uint16_t val) {
     buf[1] = (val >> 8) & 0xFF;
     buf[2] = val & 0xFF;
 
-    ret = i2c_write_blocking(i2c, ADS1015_ADDR, buf, 3, true);
-    if (ret < 1) {
+    if (i2c_write_blocking(i2c, ADS1015_ADDR, buf, 3, true) < 1) {
         return false;
     }
 
@@ -21,21 +20,19 @@ bool ADS1015::write_register(const uint8_t reg, const uint16_t val) {
 bool ADS1015::read_register(const uint8_t reg, uint8_t *val) {
 
     // Write the register address first
-    int ret = i2c_write_blocking(i2c, ADS1015_ADDR, &reg, 1, true);
-    if (ret < 1) {
+    if (i2c_write_blocking(i2c, ADS1015_ADDR, &reg, 1, true) < 1) {
         return false;
     }
 
     // Read the register value
-    ret = i2c_read_blocking(i2c, ADS1015_ADDR, val, 2, false);
-    if (ret != 2) {
+    if (i2c_read_blocking(i2c, ADS1015_ADDR, val, 2, false) != 2) {
         return false;
     }
 
     return true;
 }
 
-bool ADS1015::begin(adsDataRate_t dr) {
+bool ADS1015::begin(ads_data_rate_t dr) {
 
     data_rate = dr;
 
@@ -46,25 +43,29 @@ bool ADS1015::begin(adsDataRate_t dr) {
     return true;
 }
 
-bool ADS1015::configure_adc(adsMux_t mux, adsGain_t gain) {
+bool ADS1015::configure_adc(ads_mux_t mux, ads_gain_t gain) {
 
-    config = ADS1015_REG_CONFIG_CQUE_NONE | // Disable the comparator (default val)
-             ADS1015_REG_CONFIG_CLAT_NONLAT | // Non-latching (default val)
-             ADS1015_REG_CONFIG_CPOL_ACTVLOW | // Alert/Rdy active low   (default val)
-             ADS1015_REG_CONFIG_CMODE_TRAD | // Traditional comparator (default val)
+    config = ADS1015_REG_CONFIG_CQUE_NONE |
+             ADS1015_REG_CONFIG_CLAT_NONLAT |
+             ADS1015_REG_CONFIG_CPOL_ACTVLOW |
+             ADS1015_REG_CONFIG_CMODE_TRAD |
              data_rate | // Data rate
-             ADS1015_REG_CONFIG_MODE_SINGLE |   // Single conversion mode
+             ADS1015_REG_CONFIG_MODE_SINGLE |
              gain | mux |
-             ADS1015_REG_CONFIG_OS_SINGLE;  // Single-conversion
+             ADS1015_REG_CONFIG_OS_SINGLE;
 
+#ifdef VERBOSE
     printf("Config: %x\n", config);
+#endif
 
     // Write config register to the ADC
     if (!write_register(ADS1015_REG_POINTER_CONFIG, config)) {
         return false;
     }
 
-    sleep_ms(2); // Allow time for ADC to stabilize
+    // TODO: figure out shortest delay
+    // Allow time for ADC to stabilize
+    sleep_ms(2);
 
     // Confirm bits in config register match bits in config value
     uint8_t val[2];
@@ -80,11 +81,12 @@ bool ADS1015::configure_adc(adsMux_t mux, adsGain_t gain) {
     return true;
 }
 
-uint16_t ADS1015::read_single_ended(uint8_t channel, adsGain_t gain) {
+uint16_t ADS1015::read_single_ended(uint8_t channel, ads_gain_t gain) {
     if (channel > 3) {
         return 0;
     }
-    adsMux_t mux;
+
+    ads_mux_t mux;
 
     // Get mux config corresponding to given channel
     switch (channel) {
@@ -107,6 +109,7 @@ uint16_t ADS1015::read_single_ended(uint8_t channel, adsGain_t gain) {
         return 0;
     }
 
+    // TODO: figure out shortest delay
     // Wait for the conversion to complete
     sleep_us(1000000 * ADS1015_CONVERSION_DELAY);
 
@@ -116,21 +119,31 @@ uint16_t ADS1015::read_single_ended(uint8_t channel, adsGain_t gain) {
     if (read_register(ADS1015_REG_POINTER_CONVERT, val)) {
         result = (val[0] << 8) | val[1];
         result >>= 4;
+#ifdef VERBOSE
         printf("ADC Value: %u\n", result);
+#endif
     } else {
         result = 0xFFFF;
+#ifdef VERBOSE
         printf("Failed to read register!\n");
+#endif
     }
 
     return result;
 }
 
-std::vector<uint16_t> ADS1015::read_data(std::vector<uint8_t> &channels) {
+bool ADS1015::read_data(std::vector<uint8_t> &channels, uint16_t *data) {
+    if (!data) {
+        return false;
+    }
     // Read data for each channel in channels
-    std::vector<uint16_t> data;
-    for (int channel : channels) {
-        data.push_back(read_single_ended(channel));
+    for (size_t i = 0; i < channels.size(); i++) {
+        uint16_t result = read_single_ended(channels[i]);
+        if (result == 0xFFFF) {
+            return false;
+        }
+        data[i] = result;
     }
 
-    return data;
+    return true;
 }

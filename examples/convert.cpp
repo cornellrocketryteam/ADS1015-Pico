@@ -11,7 +11,7 @@ int main() {
 
     stdio_init_all();
 
-    i2c_init(I2C_PORT, 100 * 1000);
+    i2c_init(I2C_PORT, 400 * 1000);
     gpio_set_function(I2C_SDA, GPIO_FUNC_I2C);
     gpio_set_function(I2C_SCL, GPIO_FUNC_I2C);
 
@@ -22,18 +22,22 @@ int main() {
         sleep_ms(500);
     }
 
-    std::vector<uint16_t> data;
+    uint16_t data[3];
     std::vector<uint8_t> channels = {1, 2, 3};
 
     if (!ads.begin(DR_250SPS)) {
         printf("ADC initialization failed");
-        return 0;
+        return 1;
     }
 
     while (true) {
-        data = ads.read_data(channels);
-        for (size_t i = 0; i < data.size(); ++i) {
-            printf("Channel %zu: %d\n", i + 1, data[i]);
+        if (ads.read_data(channels, data)) {
+            for (size_t i = 0; i < channels.size(); ++i) {
+                printf("Channel %zu: %d\n", i + 1, channels[i], data[i]);
+            }
+        } else {
+            printf("Failed to read data\n");
         }
     }
+    return 0;
 }
