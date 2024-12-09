@@ -119,17 +119,16 @@ private:
      * Configures the ADC.
      * @param mux The MUX config indicating which channel to read from
      */
-    bool configure_adc(ads_mux_t mux, ads_gain_t gain = GAIN_TWOTHIRDS);
+    bool configure_adc(ads_mux_t mux);
 
     /**
      * Reads from a single AIN channel.
      * @param channel The AIN channel to read from
      * @param gain Optional parameter to set gain
      */
-    uint16_t read_single_ended(uint8_t channel, ads_gain_t gain = GAIN_TWOTHIRDS);
+    uint16_t read_single_ended(uint8_t channel);
 
     /**
-     *
      * The config value for the ADC.
      */
     uint16_t config;
@@ -138,6 +137,11 @@ private:
      * The data rate for the ADC.
      */
     ads_data_rate_t data_rate;
+
+    /**
+     * The gain for the ADC.
+     */
+    ads_gain_t gain = GAIN_ONE;
 
     /**
      * The I2C bus.

@@ -43,13 +43,13 @@ bool ADS1015::begin(ads_data_rate_t dr) {
     return true;
 }
 
-bool ADS1015::configure_adc(ads_mux_t mux, ads_gain_t gain) {
+bool ADS1015::configure_adc(ads_mux_t mux) {
 
     config = ADS1015_REG_CONFIG_CQUE_NONE |
              ADS1015_REG_CONFIG_CLAT_NONLAT |
              ADS1015_REG_CONFIG_CPOL_ACTVLOW |
              ADS1015_REG_CONFIG_CMODE_TRAD |
-             data_rate | // Data rate
+             data_rate |
              ADS1015_REG_CONFIG_MODE_SINGLE |
              gain | mux |
              ADS1015_REG_CONFIG_OS_SINGLE;
@@ -81,7 +81,7 @@ bool ADS1015::configure_adc(ads_mux_t mux, ads_gain_t gain) {
     return true;
 }
 
-uint16_t ADS1015::read_single_ended(uint8_t channel, ads_gain_t gain) {
+uint16_t ADS1015::read_single_ended(uint8_t channel) {
     if (channel > 3) {
         return 0;
     }
@@ -105,13 +105,13 @@ uint16_t ADS1015::read_single_ended(uint8_t channel, ads_gain_t gain) {
     }
 
     // Update config
-    if (!configure_adc(mux, gain)) {
+    if (!configure_adc(mux)) {
         return 0;
     }
 
-    // TODO: figure out shortest delay
+    // TODO: figure out shortest delay (1000000 * ?)
     // Wait for the conversion to complete
-    sleep_us(1000000 * ADS1015_CONVERSION_DELAY);
+    sleep_us(1000 * ADS1015_CONVERSION_DELAY);
 
     // Read the conversion results
     uint8_t val[2];
