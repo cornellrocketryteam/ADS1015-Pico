@@ -23,21 +23,24 @@ int main() {
     }
 
     uint16_t data[3];
-    std::vector<uint8_t> channels = {1, 2, 3};
+    uint8_t channels[] = {1, 2, 3};
 
-    if (!ads.begin(DR_250SPS)) {
+    if (!ads.begin(DR_3300SPS)) {
         printf("ADC initialization failed");
         return 1;
     }
 
     while (true) {
-        if (ads.read_data(channels, data)) {
-            for (size_t i = 0; i < channels.size(); ++i) {
-                printf("Channel %zu: %d\n", i + 1, channels[i], data[i]);
+        if (ads.read_data(channels, sizeof(channels), data)) {
+            for (size_t i = 0; i < sizeof(channels); ++i) {
+                printf("Channel %d: %d\n", channels[i], data[i]);
             }
         } else {
             printf("Failed to read data\n");
         }
+        printf("---------------\n");
+
+        sleep_ms(20);
     }
     return 0;
 }

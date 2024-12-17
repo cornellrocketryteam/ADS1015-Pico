@@ -4,6 +4,8 @@ ADS1015::ADS1015(i2c_inst_t *i2c_type) {
     i2c = i2c_type;
 }
 
+// TODO: replace writes and reads with timeouts
+
 bool ADS1015::write_register(const uint8_t reg, const uint16_t val) {
     uint8_t buf[3];
     buf[0] = reg;
@@ -36,7 +38,32 @@ bool ADS1015::begin(ads_data_rate_t dr) {
 
     data_rate = dr;
 
-    if (!configure_adc(MUX_MASK)) {
+    // Calculate conversion delay in microseconds
+    switch (data_rate) {
+    case DR_128SPS:
+        delay = 1000000 / std::ceil(128);
+        break;
+    case DR_250SPS:
+        delay = 1000000 / std::ceil(250);
+        break;
+    case DR_490SPS:
+        delay = 1000000 / std::ceil(490);
+        break;
+    case DR_920SPS:
+        delay = 1000000 / std::ceil(920);
+        break;
+    case DR_1600SPS:
+        delay = 1000000 / std::ceil(1600);
+        break;
+    case DR_2400SPS:
+        delay = 1000000 / std::ceil(2400);
+        break;
+    case DR_3300SPS:
+        delay = 1000000 / std::ceil(3300);
+        break;
+    }
+
+    if (!configure_adc(MUX_SINGLE_0)) {
         return false;
     }
 
@@ -62,10 +89,6 @@ bool ADS1015::configure_adc(ads_mux_t mux) {
     if (!write_register(ADS1015_REG_POINTER_CONFIG, config)) {
         return false;
     }
-
-    // TODO: figure out shortest delay
-    // Allow time for ADC to stabilize
-    sleep_ms(2);
 
     // Confirm bits in config register match bits in config value
     uint8_t val[2];
@@ -109,9 +132,8 @@ uint16_t ADS1015::read_single_ended(uint8_t channel) {
         return 0;
     }
 
-    // TODO: figure out shortest delay (1000000 * ?)
     // Wait for the conversion to complete
-    sleep_us(1000 * ADS1015_CONVERSION_DELAY);
+    sleep_us(delay);
 
     // Read the conversion results
     uint8_t val[2];
@@ -120,10 +142,10 @@ uint16_t ADS1015::read_single_ended(uint8_t channel) {
         result = (val[0] << 8) | val[1];
         result >>= 4;
 #ifdef VERBOSE
-        printf("ADC Value: %u\n", result);
+        printf("ADC Value: %d\n", result);
 #endif
     } else {
-        result = 0xFFFF;
+        result = 0xFFF;
 #ifdef VERBOSE
         printf("Failed to read register!\n");
 #endif
@@ -132,14 +154,14 @@ uint16_t ADS1015::read_single_ended(uint8_t channel) {
     return result;
 }
 
-bool ADS1015::read_data(std::vector<uint8_t> &channels, uint16_t *data) {
+bool ADS1015::read_data(const uint8_t *channels, size_t channels_size, uint16_t *data) {
     if (!data) {
         return false;
     }
     // Read data for each channel in channels
-    for (size_t i = 0; i < channels.size(); i++) {
+    for (size_t i = 0; i < channels_size; i++) {
         uint16_t result = read_single_ended(channels[i]);
-        if (result == 0xFFFF) {
+        if (result == 0xFFF) {
             return false;
         }
         data[i] = result;
