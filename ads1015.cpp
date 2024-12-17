@@ -54,7 +54,7 @@ bool ADS1015::configure_adc(ads_mux_t mux) {
              gain | mux |
              ADS1015_REG_CONFIG_OS_SINGLE;
 
-#ifdef VERBOSE
+#ifdef DEBUG
     printf("Config: %x\n", config);
 #endif
 
@@ -119,7 +119,7 @@ uint16_t ADS1015::read_single_ended(uint8_t channel) {
     if (read_register(ADS1015_REG_POINTER_CONVERT, val)) {
         result = (val[0] << 8) | val[1];
         result >>= 4;
-#ifdef VERBOSE
+#ifdef DEBUG
         printf("ADC Value: %u\n", result);
 #endif
     } else {
