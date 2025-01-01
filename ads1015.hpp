@@ -91,7 +91,7 @@ public:
      * Configures the ADC with data rate and default values.
      * @param data_rate The data rate to configure the ADC with
      */
-    bool begin(ads_data_rate_t dr = DR_250SPS);
+    bool begin(ads_data_rate_t dr = DR_3300SPS);
 
     /**
      * Reads data from each channel passed in and returns data as a vector.

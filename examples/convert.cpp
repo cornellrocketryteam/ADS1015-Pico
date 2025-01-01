@@ -25,7 +25,7 @@ int main() {
     uint16_t data[3];
     uint8_t channels[] = {1, 2, 3};
 
-    if (!ads.begin(DR_3300SPS)) {
+    if (!ads.begin()) {
         printf("ADC initialization failed");
         return 1;
     }
