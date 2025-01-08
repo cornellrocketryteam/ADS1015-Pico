@@ -3,10 +3,7 @@
 
 #include "hardware/i2c.h"
 #include "pico/stdlib.h"
-#include <cmath>
 #include <cstdio>
-#include <map>
-#include <vector>
 
 /* General Config */
 #define ADS1015_ADDR (0x48)
