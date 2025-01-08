@@ -37,31 +37,37 @@ bool ADS1015::read_register(const uint8_t reg, uint8_t *val) {
 bool ADS1015::begin(ads_data_rate_t dr) {
 
     data_rate = dr;
+    uint16_t sps;
 
     // Calculate conversion delay in microseconds
     switch (data_rate) {
     case DR_128SPS:
-        delay = 1000000 / std::ceil(128);
+        sps = 128;
         break;
     case DR_250SPS:
-        delay = 1000000 / std::ceil(250);
+        sps = 250;
         break;
     case DR_490SPS:
-        delay = 1000000 / std::ceil(490);
+        sps = 490;
         break;
     case DR_920SPS:
-        delay = 1000000 / std::ceil(920);
+        sps = 920;
         break;
     case DR_1600SPS:
-        delay = 1000000 / std::ceil(1600);
+        sps = 1600;
         break;
     case DR_2400SPS:
-        delay = 1000000 / std::ceil(2400);
+        sps = 2400;
         break;
     case DR_3300SPS:
-        delay = 1000000 / std::ceil(3300);
+        sps = 3300;
+        break;
+    default: // Based on default dr = DR_3300SPS
+        sps = 3300;
         break;
     }
+
+    delay = (1000000 + sps - 1) / sps;
 
     if (!configure_adc(MUX_SINGLE_0)) {
         return false;
