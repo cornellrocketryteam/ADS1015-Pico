@@ -4,15 +4,13 @@ ADS1015::ADS1015(i2c_inst_t *i2c_type) {
     i2c = i2c_type;
 }
 
-// TODO: replace writes and reads with timeouts
-
 bool ADS1015::write_register(const uint8_t reg, const uint16_t val) {
     uint8_t buf[3];
     buf[0] = reg;
     buf[1] = (val >> 8) & 0xFF;
     buf[2] = val & 0xFF;
 
-    if (i2c_write_blocking(i2c, ADS1015_ADDR, buf, 3, true) < 1) {
+    if (i2c_write_timeout_us(i2c, ADS1015_ADDR, buf, 3, true, ADS1015_BYTE_TIMEOUT_US) < 1) {
         return false;
     }
 
@@ -21,13 +19,13 @@ bool ADS1015::write_register(const uint8_t reg, const uint16_t val) {
 
 bool ADS1015::read_register(const uint8_t reg, uint8_t *val) {
 
-    // Write the register address first
-    if (i2c_write_blocking(i2c, ADS1015_ADDR, &reg, 1, true) < 1) {
+     // Write the register address first
+    if (i2c_write_timeout_us(i2c, ADS1015_ADDR, &reg, 1, true, ADS1015_BYTE_TIMEOUT_US) < 1) {
         return false;
     }
 
     // Read the register value
-    if (i2c_read_blocking(i2c, ADS1015_ADDR, val, 2, false) != 2) {
+    if (i2c_read_timeout_us(i2c, ADS1015_ADDR, val, 2, false, 6 * ADS1015_BYTE_TIMEOUT_US) != 2) {
         return false;
     }
 

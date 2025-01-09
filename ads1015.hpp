@@ -16,6 +16,7 @@
 #define ADS1015_REG_CONFIG_MODE_CONTINUOUS (0x0000) // Continuous conversion mode
 #define ADS1015_REG_CONFIG_MODE_SINGLE (0x0100) // Single-shot conversion mode
 #define ADS1015_REG_CONFIG_OS_SINGLE (0x8000)  // Single-ended conversion
+#define ADS1015_BYTE_TIMEOUT_US (1000)
 
 /* Data Rate Config */
 #define ADS1015_REG_CONFIG_DR_MASK (0x00E0)
