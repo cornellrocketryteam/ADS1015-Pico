@@ -92,9 +92,17 @@ public:
     bool begin(ads_data_rate_t dr = DR_3300SPS);
 
     /**
+     * Sets the gain for a specified AIN channel.
+     * @param channel The channel whose gain is being set
+     * @param gain The gain value to be set
+     */
+    void set_gain(uint8_t channel, ads_gain_t gain);
+
+    /**
      * Reads data from each channel passed in and returns data as a vector.
      * @param channels An array of AIN channels to be read from
      * @param channels_size The number of channels in channels
+     * @param gains An array of gain values for each AIN channel to be read from
      * @param data The array that the converted data will be stored in
      */
     bool read_data(const uint8_t *channels, size_t channels_size, uint16_t *data);
@@ -117,15 +125,16 @@ private:
     /**
      * Configures the ADC.
      * @param mux The MUX config indicating which channel to read from
+     * @param gain The gain config for the channel being read from
      */
-    bool configure_adc(ads_mux_t mux);
+    bool configure_adc(ads_mux_t mux, ads_gain_t gain);
 
     /**
      * Reads from a single AIN channel.
      * @param channel The AIN channel to read from
-     * @param gain Optional parameter to set gain
+     * @param gain Parameter to set gain
      */
-    uint16_t read_single_ended(uint8_t channel);
+    uint16_t read_single_ended(uint8_t channel, ads_gain_t gain);
 
     /**
      * The config value for the ADC.
@@ -138,9 +147,9 @@ private:
     ads_data_rate_t data_rate;
 
     /**
-     * The gain for the ADC.
+     * Array of gain values corresponding to each ADC channel
      */
-    ads_gain_t gain = GAIN_ONE;
+    ads_gain_t gains[3] = {GAIN_ONE, GAIN_ONE, GAIN_ONE};
 
     /**
      * The conversion delay for the ADC in microseconds.

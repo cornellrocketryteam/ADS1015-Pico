@@ -67,14 +67,14 @@ bool ADS1015::begin(ads_data_rate_t dr) {
 
     delay = (1000000 + sps - 1) / sps;
 
-    if (!configure_adc(MUX_SINGLE_0)) {
+    if (!configure_adc(MUX_SINGLE_0, GAIN_ONE)) {
         return false;
     }
 
     return true;
 }
 
-bool ADS1015::configure_adc(ads_mux_t mux) {
+bool ADS1015::configure_adc(ads_mux_t mux, ads_gain_t gain) {
 
     config = ADS1015_REG_CONFIG_CQUE_NONE |
              ADS1015_REG_CONFIG_CLAT_NONLAT |
@@ -108,7 +108,11 @@ bool ADS1015::configure_adc(ads_mux_t mux) {
     return true;
 }
 
-uint16_t ADS1015::read_single_ended(uint8_t channel) {
+void ADS1015::set_gain(uint8_t channel, ads_gain_t gain){
+    gains[channel] = gain;
+}
+
+uint16_t ADS1015::read_single_ended(uint8_t channel, ads_gain_t gain) {
     if (channel > 3) {
         return 0;
     }
@@ -132,7 +136,7 @@ uint16_t ADS1015::read_single_ended(uint8_t channel) {
     }
 
     // Update config
-    if (!configure_adc(mux)) {
+    if (!configure_adc(mux, gain)) {
         return 0;
     }
 
@@ -164,7 +168,7 @@ bool ADS1015::read_data(const uint8_t *channels, size_t channels_size, uint16_t 
     }
     // Read data for each channel in channels
     for (size_t i = 0; i < channels_size; i++) {
-        uint16_t result = read_single_ended(channels[i]);
+        uint16_t result = read_single_ended(channels[i], gains[i]);
         if (result == 0xFFF) {
             return false;
         }
