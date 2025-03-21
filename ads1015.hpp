@@ -96,7 +96,7 @@ public:
      * @param channel The channel whose gain is being set
      * @param gain The gain value to be set
      */
-    void set_gain(uint8_t channel, ads_gain_t gain);
+    bool set_gain(uint8_t channel, ads_gain_t gain);
 
     /**
      * Reads data from each channel passed in and returns data as a vector.

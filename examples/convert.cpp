@@ -29,7 +29,7 @@ int main() {
         printf("ADC initialization failed");
         return 1;
     }
-    ads.set_gain(0, GAIN_FOUR);
+    ads.set_gain(1, GAIN_FOUR);
 
     while (true) {
         if (ads.read_data(channels, sizeof(channels), data)) {

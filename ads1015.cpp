@@ -108,8 +108,13 @@ bool ADS1015::configure_adc(ads_mux_t mux, ads_gain_t gain) {
     return true;
 }
 
-void ADS1015::set_gain(uint8_t channel, ads_gain_t gain){
-    gains[channel] = gain;
+bool ADS1015::set_gain(uint8_t channel, ads_gain_t gain){
+    if (channel < 1 || channel > 3){
+        return false;
+    }
+
+    gains[channel - 1] = gain;
+    return true;
 }
 
 uint16_t ADS1015::read_single_ended(uint8_t channel, ads_gain_t gain) {
