@@ -117,9 +117,9 @@ bool ADS1015::set_gain(uint8_t channel, ads_gain_t gain){
     return true;
 }
 
-uint16_t ADS1015::read_single_ended(uint8_t channel, ads_gain_t gain) {
-    if (channel > 3) {
-        return 0;
+bool ADS1015::read_single_ended(uint8_t channel, ads_gain_t gain, uint16_t *result) {
+    if (channel > 3 || result == nullptr) {
+        return false;
     }
 
     ads_mux_t mux;
@@ -142,7 +142,7 @@ uint16_t ADS1015::read_single_ended(uint8_t channel, ads_gain_t gain) {
 
     // Update config
     if (!configure_adc(mux, gain)) {
-        return 0;
+        return false;
     }
 
     // Wait for the conversion to complete
@@ -150,21 +150,20 @@ uint16_t ADS1015::read_single_ended(uint8_t channel, ads_gain_t gain) {
 
     // Read the conversion results
     uint8_t val[2];
-    uint16_t result;
     if (read_register(ADS1015_REG_POINTER_CONVERT, val)) {
-        result = (val[0] << 8) | val[1];
-        result >>= 4;
+        *result = (val[0] << 8) | val[1];
+        *result >>= 4;
 #ifdef DEBUG
         printf("ADC Value: %u\n", result);
 #endif
     } else {
-        result = 0xFFF;
+        *result = 0xFFF;
 #ifdef VERBOSE
         printf("Failed to read register!\n");
 #endif
     }
 
-    return result;
+    return true;
 }
 
 bool ADS1015::read_data(const uint8_t *channels, size_t channels_size, uint16_t *data) {
@@ -173,8 +172,8 @@ bool ADS1015::read_data(const uint8_t *channels, size_t channels_size, uint16_t 
     }
     // Read data for each channel in channels
     for (size_t i = 0; i < channels_size; i++) {
-        uint16_t result = read_single_ended(channels[i], gains[i]);
-        if (result == 0xFFF) {
+        uint16_t result;
+        if (!read_single_ended(channels[i], gains[i], &result) || result == 0xFFF) {
             return false;
         }
         data[i] = result;

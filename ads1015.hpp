@@ -133,8 +133,9 @@ private:
      * Reads from a single AIN channel.
      * @param channel The AIN channel to read from
      * @param gain Parameter to set gain
+     * @param result The array storing the converted data
      */
-    uint16_t read_single_ended(uint8_t channel, ads_gain_t gain);
+    bool read_single_ended(uint8_t channel, ads_gain_t gain, uint16_t *result);
 
     /**
      * The config value for the ADC.
