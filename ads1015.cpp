@@ -173,7 +173,7 @@ bool ADS1015::read_data(const uint8_t *channels, size_t channels_size, uint16_t 
     // Read data for each channel in channels
     for (size_t i = 0; i < channels_size; i++) {
         uint16_t result;
-        if (!read_single_ended(channels[i], gains[i], &result) || result == 0xFFF) {
+        if (!read_single_ended(channels[i], gains[channels[i] - 1], &result) || result == 0xFFF) {
             return false;
         }
         data[i] = result;
